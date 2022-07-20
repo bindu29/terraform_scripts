@@ -1,3 +1,9 @@
+variable "region" {
+
+    description = "Region of AWS Service"
+    type = string
+}
+
 variable "client" {
 
     description = "Client Name"
