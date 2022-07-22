@@ -46,15 +46,10 @@ resource "aws_iam_instance_profile" "monitoring_profile" {
   role = "${aws_iam_role.ec2-prometheus-role.name}"
 }
 
-data "aws_vpcs" "kpi" {
 
-    tags = {
-        Name = "kpi-${var.environment}-${var.client}-VPC"
-    }
-}
 resource "aws_security_group" "kpi" {
   name = "kpi-${var.environment}-${var.pipeline}-${var.service}-sg"
-  vpc_id = tolist(data.aws_vpcs.kpi.ids)[0]
+
 
   tags = {
         Name = "${var.client}-${var.environment}"
@@ -77,7 +72,7 @@ resource "aws_grafana_workspace" "kpi" {
   account_access_type      = "CURRENT_ACCOUNT"
   authentication_providers = ["SAML"]
   permission_type          = "SERVICE_MANAGED"
-
+  role_arn                 = aws_iam_role.assume.arn
 }
 
 resource "aws_iam_role" "assume" {
