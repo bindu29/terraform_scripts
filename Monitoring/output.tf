@@ -20,7 +20,7 @@ output "workspace_grafana_arn" {
 
 output "workspace_grafana_endpoint" {
  
-  value       = aws_grafana_workspace.kpi.grafana_endpoint
+  value       = aws_grafana_workspace.kpi.endpoint
 }
 output "workspace_grafana_version" {
   value       = aws_grafana_workspace.kpi.grafana_version
