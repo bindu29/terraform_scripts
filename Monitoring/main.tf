@@ -73,7 +73,7 @@ resource "aws_security_group_rule" "kpi" {
   self = true
   depends_on=[aws_security_group.kpi]
 }
-resource "aws_grafana_workspace" "grafana" {
+resource "aws_grafana_workspace" "kpi" {
   account_access_type      = "CURRENT_ACCOUNT"
   authentication_providers = ["SAML"]
   permission_type          = "SERVICE_MANAGED"
