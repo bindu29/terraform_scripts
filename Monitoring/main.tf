@@ -1,6 +1,6 @@
 
 resource "aws_prometheus_workspace" "kpi" {
-  alias = "kpi-${var.environment}-${var.pipeline}-${var.service}-sg"
+  alias = "kpi-${var.environment}-${var.pipeline}-${var.service}"
 
   tags = {
         Name = "${var.client}-${var.environment}"
@@ -63,7 +63,6 @@ resource "aws_security_group" "kpi" {
         Type = "${var.pipeline}"
     }
 }
-
 resource "aws_security_group_rule" "kpi" {
 
   type = "ingress"
@@ -74,9 +73,26 @@ resource "aws_security_group_rule" "kpi" {
   self = true
   depends_on=[aws_security_group.kpi]
 }
+resource "aws_grafana_workspace" "grafana" {
+  account_access_type      = "CURRENT_ACCOUNT"
+  authentication_providers = ["SAML"]
+  permission_type          = "SERVICE_MANAGED"
 
+}
 
-
-
-
-
+resource "aws_iam_role" "assume" {
+  name = "grafana-assume"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          Service = "grafana.amazonaws.com"
+        }
+      },
+    ]
+  })
+}
