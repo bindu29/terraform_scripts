@@ -1,0 +1,29 @@
+region = "us-east-1"
+client = "crisphealth"
+pipeline = "CDR-Pipeline"
+environment = "test"
+service = "MSK"
+kafka_versions = "2.6.2"
+broker_count = 2
+server_properties = <<PROPERTIES
+auto.create.topics.enable=true
+default.replication.factor=2
+min.insync.replicas=1
+num.io.threads=8
+num.network.threads=5
+num.partitions=5
+num.replica.fetchers=2
+replica.lag.time.max.ms=30000
+socket.receive.buffer.bytes=1048576
+socket.request.max.bytes=104857600
+socket.send.buffer.bytes=1048576
+unclean.leader.election.enable=true
+zookeeper.session.timeout.ms=18000
+log.flush.interval.ms=3000
+log.retention.hours=504
+log.cleanup.policy=delete
+PROPERTIES
+
+encryption_type = "TLS_PLAINTEXT"
+instance_type = "kafka.m5.large"
+ebs_volume_size = 10
