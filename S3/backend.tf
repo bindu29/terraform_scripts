@@ -4,9 +4,9 @@
 terraform{
     backend "s3"{
 
-         bucket = "kpi-${var.environment}-tfstate"
+         bucket = "kpi-test-tfstate"
          encrypt = true
-         key = "terraform/kpi-${var.environment}-${var.client}-${var.service}.tfstate"
-         region = "${var.region}"
+         key = "terraform/kpi-test-glue-kafka.tfstate"
+         region = "us-east-1"
     }
 }
