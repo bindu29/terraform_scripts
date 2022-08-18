@@ -18,7 +18,7 @@ data "aws_vpcs" "kpi"{
 data "aws_subnets" "kpi"{
 
   filter {
-    name = "vpc-id"
+    name = "kpi-test-private
     values = data.aws_vpcs.kpi.ids
   }
   # filter {
@@ -67,7 +67,7 @@ resource "aws_msk_cluster" "kpi" {
       
       instance_type = "${var.instance_type}"
       ebs_volume_size = "${var.ebs_volume_size}"
-      client_subnets = [tolist(data.aws_subnets.kpi.ids)[0],tolist(data.aws_subnets.kpi.ids)[1]]
+      client_subnets = [tolist(data.aws_subnets.kpi.ids)[0],tolist(data.aws_subnets.kpi.ids)[0]
       security_groups = [aws_security_group.kpi.id]
     }
 
