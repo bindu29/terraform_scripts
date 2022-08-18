@@ -10,7 +10,7 @@ resource "aws_msk_configuration" "kpi" {
 data "aws_vpcs" "kpi"{
 
   tags ={
-    Name = "kpi-${var.environment}-vpc-vpc"
+    Name = "kpi"
   }
 }
 
