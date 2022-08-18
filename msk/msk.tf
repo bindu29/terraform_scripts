@@ -18,7 +18,7 @@ data "aws_vpcs" "kpi"{
 data "aws_subnets" "kpi"{
 
   filter {
-    name = "kpi-test-private
+    name = "kpi-test-private"
     values = data.aws_vpcs.kpi.ids
   }
   # filter {
