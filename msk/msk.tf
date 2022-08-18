@@ -18,8 +18,8 @@ data "aws_vpcs" "kpi"{
 data "aws_subnets" "kpi"{
 
   filter {
-    name = "kpi-test-private"
-    values = data.aws_vpcs.kpi.ids
+    name = "vpc-id"
+    values = [data.aws_vpcs.kpi.ids[0]]
   }
   # filter {
   #   name = "tag:deployment"
