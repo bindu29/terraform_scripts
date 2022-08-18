@@ -67,7 +67,7 @@ resource "aws_msk_cluster" "kpi" {
       
       instance_type = "${var.instance_type}"
       ebs_volume_size = "${var.ebs_volume_size}"
-      client_subnets = [tolist(data.aws_subnets.kpi.ids)[0],tolist(data.aws_subnets.kpi.ids)[0]]
+      client_subnets = [tolist(data.aws_subnets.kpi.ids)[0],tolist(data.aws_subnets.kpi.ids)[1]]
       security_groups = [aws_security_group.kpi.id]
     }
 
