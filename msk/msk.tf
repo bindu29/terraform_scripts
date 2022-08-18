@@ -53,7 +53,7 @@ resource "aws_security_group_rule" "kpi" {
 
 data "aws_kms_alias" "kpi"{
 
-  name = "alias/${var.client}-${var.environment}"
+  name = "alias/kpi-test-kafka"
 }
 
 resource "aws_msk_cluster" "kpi" {
