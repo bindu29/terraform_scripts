@@ -3,7 +3,7 @@ resource "aws_sns_topic" "kpi" {
 }
 
 resource "aws_sns_topic_policy" "kpi" {
-  arn = aws_sns_topic.kpi_sns_topic.arn
+  arn = aws_sns_topic.kpi.arn
   policy = data.aws_iam_policy_document.my_custom_sns_policy_document.json
 }
 
@@ -40,7 +40,7 @@ data "aws_iam_policy_document" "kpi" {
     }
 
     resources = [
-      aws_sns_topic.kpi_sns_topic.arn,
+      aws_sns_topic.kpi.arn,
     ]
 
     sid = "__default_statement_ID"
