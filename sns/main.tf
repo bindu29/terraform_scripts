@@ -1,13 +1,13 @@
-resource "aws_sns_topic" "kpi_sns_topic" {
+resource "aws_sns_topic" "kpi" {
   name = "${var.client}-${var.environment}"
 }
 
-resource "aws_sns_topic_policy" "kpi_topic_policy" {
+resource "aws_sns_topic_policy" "kpi" {
   arn = aws_sns_topic.kpi_sns_topic.arn
   policy = data.aws_iam_policy_document.my_custom_sns_policy_document.json
 }
 
-data "aws_iam_policy_document" "kpi_sns_policy_document" {
+data "aws_iam_policy_document" "kpi" {
   policy_id = "__default_policy_ID"
 
   statement {
