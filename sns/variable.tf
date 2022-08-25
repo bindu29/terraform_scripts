@@ -30,3 +30,8 @@ variable "service" {
     type = string
   
 }
+variable "account_id" {
+
+    description = "account id of AWS Service"
+    type = string
+}
