@@ -1,0 +1,6 @@
+region = "us-east-1"
+client = "health"
+pipeline = "cdr-pipeline"
+environment = "preprod"
+service = "sns"
+account_id = ""
