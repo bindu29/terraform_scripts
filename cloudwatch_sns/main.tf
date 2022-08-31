@@ -47,4 +47,17 @@ data "aws_iam_policy_document" "kpi" {
   }
 }
 
+resource "aws_cloudwatch_metric_alarm" "low_memory" {
+  alarm_name          = "${var.client}-${var.environment}-low-memory"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = "5"
+  metric_name         = "FreeableMemory"
+  namespace           = "AWS/Kafka"
+  period              = "600"
+  statistic           = "Average"
+  threshold           = "75"
+  datapoints_to_alarm       = "1
+  alarm_description   = "Database instance memory above threshold"
+  alarm_actions       = aws_sns_topic.kpi.arn
 
+}
