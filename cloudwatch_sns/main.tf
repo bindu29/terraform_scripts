@@ -48,7 +48,7 @@ data "aws_iam_policy_document" "kpi" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "low_memory" {
-  alarm_name          = "${var.client}-${var.environment}-low-memory"
+  alarm_name          = "${var.client}-${var.environment}-kafkalow-memory"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = "5"
   metric_name         = "FreeableMemory"
@@ -60,4 +60,30 @@ resource "aws_cloudwatch_metric_alarm" "low_memory" {
   alarm_description   = "Database instance memory above threshold"
   alarm_actions       = aws_sns_topic.kpi.arn
 
+}
+resource "aws_cloudwatch_metric_alarm" "high_cpu" {
+  alarm_name          = "${var.client}-${var.environment}-kafka-high-cpu"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = "3"
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/Kafka"
+  period              = "600"
+  statistic           = "Maximum"
+  threshold           = "80"
+  alarm_description   = "Database instance CPU above threshold"
+  alarm_actions       = var.sns_topic.kpi.arn
+}
+
+resource "aws_cloudwatch_metric_alarm" "low_disk" {
+  alarm_name          = "${var.client}-${var.environment}-kafka-low-disk"
+  comparison_operator = "LessThanOrEqualToThreshold"
+  evaluation_periods  = "3"
+  metric_name         = "FreeStorageSpace"
+  namespace           = "AWS/Kafka"
+  period              = "600"
+  statistic           = "Maximum"
+  threshold           = "1000000000"
+  unit                = "Bytes"
+  alarm_description   = "Database instance disk space is low"
+  alarm_actions       = var.sns_topic.kpi.arn
 }
