@@ -3,8 +3,28 @@
 ########################################
 resource "aws_sns_topic" "kpi" {
   name = "${var.client}-${var.environment}"
+   delivery_policy = <<EOF
+{
+  "http": {
+    "defaultHealthyRetryPolicy": {
+      "minDelayTarget": 20,
+      "maxDelayTarget": 20,
+      "numRetries": 3
+    },
+    "defaultThrottlePolicy": {
+      "maxReceivesPerSecond": 1
+    }
+  }
+}
+EOF
 }
 
+
+resource "aws_sns_topic_subscription" "email-target" {
+  topic_arn = aws_sns_topic.kpi.arn
+  protocol  = "email"
+  endpoint  = "jsanthapuri@kpininja.com"
+}
 resource "aws_sns_topic_policy" "kpi" {
   arn = aws_sns_topic.kpi.arn
   policy = data.aws_iam_policy_document.kpi.json
