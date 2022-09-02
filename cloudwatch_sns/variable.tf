@@ -35,3 +35,18 @@ variable "account_id" {
     description = "account id of AWS Service"
     type = string
 }
+variable "kafka_clustername" {
+
+    description = "Kafka Cluster Name"
+    type = string
+}
+variable "es_domainname" {
+
+    description = "Elastic Search Domain name"
+    type = string
+}
+variable "es_clientid" {
+
+    description = "Elastic Search Client ID"
+    type = string
+}
