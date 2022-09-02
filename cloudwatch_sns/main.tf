@@ -1,10 +1,13 @@
+########################################
+# SNS
+########################################
 resource "aws_sns_topic" "kpi" {
   name = "${var.client}-${var.environment}"
 }
 
 resource "aws_sns_topic_policy" "kpi" {
   arn = aws_sns_topic.kpi.arn
-  policy = data.aws_iam_policy_document.my_custom_sns_policy_document.json
+  policy = data.aws_iam_policy_document.kpi.json
 }
 
 data "aws_iam_policy_document" "kpi" {
@@ -46,7 +49,9 @@ data "aws_iam_policy_document" "kpi" {
     sid = "__default_statement_ID"
   }
 }
-
+########################################
+# Cloudwatch for Kafka
+########################################
 resource "aws_cloudwatch_metric_alarm" "low_memory" {
   alarm_name          = "${var.client}-${var.environment}-kafkalow-memory"
   comparison_operator = "GreaterThanOrEqualToThreshold"
@@ -59,6 +64,9 @@ resource "aws_cloudwatch_metric_alarm" "low_memory" {
   datapoints_to_alarm       = "1
   alarm_description   = "Database instance memory above threshold"
   alarm_actions       = aws_sns_topic.kpi.arn
+  dimensions = {
+        ClusterName = "var.kafka_clustername"
+      }
 
 }
 resource "aws_cloudwatch_metric_alarm" "high_cpu" {
@@ -71,7 +79,10 @@ resource "aws_cloudwatch_metric_alarm" "high_cpu" {
   statistic           = "Maximum"
   threshold           = "80"
   alarm_description   = "Database instance CPU above threshold"
-  alarm_actions       = var.sns_topic.kpi.arn
+  alarm_actions       = aws_sns_topic.kpi.arn
+  dimensions = {
+        ClusterName = "var.kafka_clustername"
+      }
 }
 
 resource "aws_cloudwatch_metric_alarm" "low_disk" {
@@ -85,5 +96,46 @@ resource "aws_cloudwatch_metric_alarm" "low_disk" {
   threshold           = "1000000000"
   unit                = "Bytes"
   alarm_description   = "Database instance disk space is low"
-  alarm_actions       = var.sns_topic.kpi.arn
+  alarm_actions       = aws_sns_topic.kpi.arn
+   dimensions = {
+        ClusterName = "var.kafka_clustername"
+      }
+}
+########################################
+# Cloudwatch for Elasticsearch
+########################################
+
+resource "aws_cloudwatch_metric_alarm" "cluster_status_is_red" {
+  alarm_name          = "${var.client}-${var.environment}-ElasticSearch-ClusterStatusIsRed"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = "3"
+  datapoints_to_alarm = "1"
+  metric_name         = "ClusterStatus.red"
+  namespace           = "AWS/ES"
+  period              = "600"
+  statistic           = "Maximum"
+  threshold           = "1"
+  alarm_description   = "elasticsearch cluster status is in red"
+  alarm_actions       = aws_sns_topic.kpi.arn
+   dimensions = {
+        ClusterName = "var.es_domainname"
+        ClientId   = "var.es_clientid"
+      }
+}
+resource "aws_cloudwatch_metric_alarm" "cluster_status_is_yellow" {
+  alarm_name          = "${var.client}-${var.environment}-ElasticSearch-ClusterStatusIsYellow"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = "3"
+  datapoints_to_alarm = "1"
+  metric_name         = "ClusterStatus.yellow"
+  namespace           = "AWS/ES"
+  period              = "600"
+  statistic           = "Maximum"
+  threshold           = "1"
+  alarm_description   = "elasticsearch cluster status is in yellow"
+  alarm_actions       = aws_sns_topic.kpi.arn
+   dimensions = {
+        ClusterName = "var.es_domainname"
+         ClientId   = "var.es_clientid"
+      }
 }
