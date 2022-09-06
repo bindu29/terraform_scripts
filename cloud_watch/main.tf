@@ -192,6 +192,78 @@ data "aws_iam_policy_document" "kpi" {
     sid = "__default_statement_ID"
   }
 }
+
+########################################
+# SNS
+########################################
+resource "aws_sns_topic" "kpi" {
+  name = "${var.client}-${var.environment}"
+   delivery_policy = <<EOF
+{
+  "http": {
+    "defaultHealthyRetryPolicy": {
+      "minDelayTarget": 20,
+      "maxDelayTarget": 20,
+      "numRetries": 3
+    },
+    "defaultThrottlePolicy": {
+      "maxReceivesPerSecond": 1
+    }
+  }
+}
+EOF
+}
+
+
+resource "aws_sns_topic_subscription" "email-target" {
+  topic_arn = aws_sns_topic.kpi.arn
+  protocol  = "email"
+  endpoint  = "jsanthapuri@kpininja.com"
+}
+resource "aws_sns_topic_policy" "kpi" {
+  arn = aws_sns_topic.kpi.arn
+  policy = data.aws_iam_policy_document.kpi.json
+}
+
+data "aws_iam_policy_document" "kpi" {
+  policy_id = "__default_policy_ID"
+
+  statement {
+    actions = [
+      "SNS:Subscribe",
+      "SNS:SetTopicAttributes",
+      "SNS:RemovePermission",
+      "SNS:Receive",
+      "SNS:Publish",
+      "SNS:ListSubscriptionsByTopic",
+      "SNS:GetTopicAttributes",
+      "SNS:DeleteTopic",
+      "SNS:AddPermission",
+    ]
+
+    condition {
+      test     = "StringEquals"
+      variable = "AWS:SourceOwner"
+
+      values = [
+        var.account_id,
+      ]
+    }
+
+    effect = "Allow"
+
+    principals {
+      type        = "AWS"
+      identifiers = ["*"]
+    }
+
+    resources = [
+      aws_sns_topic.kpi.arn,
+    ]
+
+    sid = "__default_statement_ID"
+  }
+}
 ########################################
 # Cloudwatch for Kafka
 ########################################
@@ -206,9 +278,9 @@ resource "aws_cloudwatch_metric_alarm" "low_memory" {
   threshold           = "75"
   datapoints_to_alarm       = "1"
   alarm_description   = "Database instance memory above threshold"
-  alarm_actions       = aws_sns_topic.kpi.arn
+  alarm_actions       = [aws_sns_topic.kpi.arn]
   dimensions = {
-        ClusterName = "var.kafka_clustername"
+        ClusterName = "${var.kafka_clustername}"
       }
 
 }
@@ -222,26 +294,25 @@ resource "aws_cloudwatch_metric_alarm" "high_cpu" {
   statistic           = "Maximum"
   threshold           = "80"
   alarm_description   = "Database instance CPU above threshold"
-  alarm_actions       = aws_sns_topic.kpi.arn
+  alarm_actions       = [aws_sns_topic.kpi.arn]
   dimensions = {
-        ClusterName = "var.kafka_clustername"
+        ClusterName = "${var.kafka_clustername}"
       }
 }
 
-resource "aws_cloudwatch_metric_alarm" "low_disk" {
-  alarm_name          = "${var.client}-${var.environment}-kafka-low-disk"
+resource "aws_cloudwatch_metric_alarm" "kafka_disk" {
+  alarm_name          = "${var.client}-${var.environment}-msk-datalogs-disk"
   comparison_operator = "LessThanOrEqualToThreshold"
-  evaluation_periods  = "3"
-  metric_name         = "FreeStorageSpace"
+  evaluation_periods  = "1"
+  metric_name         = "KafkaDataLogsDiskUsed"
   namespace           = "AWS/Kafka"
-  period              = "600"
-  statistic           = "Maximum"
-  threshold           = "1000000000"
-  unit                = "Bytes"
-  alarm_description   = "Database instance disk space is low"
-  alarm_actions       = aws_sns_topic.kpi.arn
+  period              = "300"
+  statistic           = "Average"
+  threshold           = "75"
+  alarm_description   = "MSK Broker Data Logs Disk Usage"
+  alarm_actions       = [aws_sns_topic.kpi.arn]
    dimensions = {
-        ClusterName = "var.kafka_clustername"
+        ClusterName = "${var.kafka_clustername}"
       }
 }
 ########################################
@@ -259,10 +330,10 @@ resource "aws_cloudwatch_metric_alarm" "cluster_status_is_red" {
   statistic           = "Maximum"
   threshold           = "1"
   alarm_description   = "elasticsearch cluster status is in red"
-  alarm_actions       = aws_sns_topic.kpi.arn
+  alarm_actions       = [aws_sns_topic.kpi.arn]
    dimensions = {
-        ClusterName = "var.es_domainname"
-        ClientId   = "var.es_clientid"
+        ClusterName = "${var.es_domainname}"
+        ClientId   = "${var.es_clientid}"
       }
 }
 resource "aws_cloudwatch_metric_alarm" "cluster_status_is_yellow" {
@@ -276,10 +347,10 @@ resource "aws_cloudwatch_metric_alarm" "cluster_status_is_yellow" {
   statistic           = "Maximum"
   threshold           = "1"
   alarm_description   = "elasticsearch cluster status is in yellow"
-  alarm_actions       = aws_sns_topic.kpi.arn
+  alarm_actions       = [aws_sns_topic.kpi.arn]
    dimensions = {
-        ClusterName = "var.es_domainname"
-         ClientId   = "var.es_clientid"
+        ClusterName = "${var.es_domainname}"
+         ClientId   = "${var.es_clientid}"
       }
 }
 resource "aws_cloudwatch_metric_alarm" "free_storage_space_too_low" {
@@ -293,10 +364,10 @@ resource "aws_cloudwatch_metric_alarm" "free_storage_space_too_low" {
   statistic           = "Average"
   threshold           = "75"
   alarm_description   = "Minimum free disk space on a single node"
-  alarm_actions       = aws_sns_topic.kpi.arn
+  alarm_actions       = [aws_sns_topic.kpi.arn]
   dimensions = {
-        ClusterName = "var.es_domainname"
-         ClientId   = "var.es_clientid"
+        ClusterName = "${var.es_domainname}"
+         ClientId   = "${var.es_clientid}"
       }
 }
 resource "aws_cloudwatch_metric_alarm" "cluster_index_writes_blocked" {
@@ -310,10 +381,10 @@ resource "aws_cloudwatch_metric_alarm" "cluster_index_writes_blocked" {
   statistic           = "Maximum"
   threshold           = "1"
   alarm_description   = "Elasticsearch index writes being blocker"
-  alarm_actions       = aws_sns_topic.kpi.arn
+  alarm_actions       = [aws_sns_topic.kpi.arn]
   dimensions = {
-        ClusterName = "var.es_domainname"
-         ClientId   = "var.es_clientid"
+        ClusterName = "${var.es_domainname}"
+         ClientId   = "${var.es_clientid}"
       }
 }
 resource "aws_cloudwatch_metric_alarm" "insufficient_available_nodes" {
@@ -327,10 +398,10 @@ resource "aws_cloudwatch_metric_alarm" "insufficient_available_nodes" {
   statistic           = "Average"
   threshold           = "2"
   alarm_description   = "Insufficient available Elastic search nodes"
-  alarm_actions       = aws_sns_topic.kpi.arn
+  alarm_actions       = [aws_sns_topic.kpi.arn]
   dimensions = {
-        ClusterName = "var.es_domainname"
-         ClientId   = "var.es_clientid"
+        ClusterName = "${var.es_domainname}"
+         ClientId   = "${var.es_clientid}"
       }
 }
 resource "aws_cloudwatch_metric_alarm" "high cpu" {
@@ -344,10 +415,10 @@ resource "aws_cloudwatch_metric_alarm" "high cpu" {
   statistic           = "Average"
   threshold           = "80"
   alarm_description   = "Average elasticsearch cluster CPU utilization too high"
-  alarm_actions       = aws_sns_topic.kpi.arn
+  alarm_actions       = [aws_sns_topic.kpi.arn]
   dimensions = {
-        ClusterName = "var.es_domainname"
-         ClientId   = "var.es_clientid"
+        ClusterName = "${var.es_domainname}"
+         ClientId   = "${var.es_clientid}"
       }
 }
 ########################################
@@ -356,16 +427,18 @@ resource "aws_cloudwatch_metric_alarm" "high cpu" {
 resource "aws_cloudwatch_metric_alarm" "ClusterReplicaLag" {
   alarm_name          = "${var.client}-${var.environment}-DocDB-low-memory"
   comparison_operator = "GreaterThanOrEqualToThreshold"
-  evaluation_periods  = "5"
+  evaluation_periods  = "15"
   metric_name         = "DBClusterReplicaLagMaximum"
   namespace           = "AWS/DocDB"
   period              = "600"
-  statistic           = "MAximum"
+  statistic           = "Maximum"
   threshold           = "5000"
   datapoints_to_alarm   = "15"
   alarm_description   = "Database instance cluster Replica lag is greater"
-  alarm_actions       = aws_sns_topic.kpi.arn
-
+  alarm_actions       = [aws_sns_topic.kpi.arn]
+dimensions = {
+        ClusterName = "${var.docdb_clustername}"
+      }
 
 }
 resource "aws_cloudwatch_metric_alarm" "high_cpu" {
@@ -378,8 +451,10 @@ resource "aws_cloudwatch_metric_alarm" "high_cpu" {
   statistic           = "Maximum"
   threshold           = "80"
   alarm_description   = "Database instance CPU above threshold"
-  alarm_actions       = aws_sns_topic.kpi.arn
-
+  alarm_actions       = [aws_sns_topic.kpi.arn]
+dimensions = {
+        ClusterName = "${var.docdb_clustername}"
+      }
 }
 
 resource "aws_cloudwatch_metric_alarm" "low_disk" {
@@ -393,6 +468,8 @@ resource "aws_cloudwatch_metric_alarm" "low_disk" {
   threshold           = "1000000000"
   unit                = "Bytes"
   alarm_description   = "Database instance disk space is low"
-  alarm_actions       = aws_sns_topic.kpi.arn
-
+  alarm_actions       = [aws_sns_topic.kpi.arn]
+dimensions = {
+        ClusterName = "${var.docdb_clustername}"
+      }
 }
