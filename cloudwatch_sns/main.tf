@@ -193,7 +193,7 @@ resource "aws_cloudwatch_metric_alarm" "insufficient_available_nodes" {
          ClientId   = "${var.es_clientid}"
       }
 }
-resource "aws_cloudwatch_metric_alarm" "high cpu" {
+resource "aws_cloudwatch_metric_alarm" "ES_cpu" {
   alarm_name          = "${var.client}-${var.environment}-ElasticSearch-CPUUtilizationTooHigh"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = "1"
@@ -230,8 +230,8 @@ dimensions = {
       }
 
 }
-resource "aws_cloudwatch_metric_alarm" "high_cpu" {
-  alarm_name          = "${var.client}-${var.environment}-kafka-high-cpu"
+resource "aws_cloudwatch_metric_alarm" "DOCDB_cpu" {
+  alarm_name          = "${var.client}-${var.environment}-docdb-high-cpu"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = "1"
   metric_name         = "CPUUtilization"
@@ -247,7 +247,7 @@ dimensions = {
 }
 
 resource "aws_cloudwatch_metric_alarm" "low_disk" {
-  alarm_name          = "${var.client}-${var.environment}-kafka-low-disk"
+  alarm_name          = "${var.client}-${var.environment}-docdb-low-disk"
   comparison_operator = "LessThanOrEqualToThreshold"
   evaluation_periods  = "1"
   metric_name         = "FreeStorageSpace"

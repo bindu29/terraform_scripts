@@ -50,3 +50,8 @@ variable "es_clientid" {
     description = "Elastic Search Client ID"
     type = string
 }
+variable "docdb_clustername" {
+
+    description = "DocDB Cluster Name"
+    type = string
+}
