@@ -82,12 +82,21 @@ resource "aws_cloudwatch_metric_alarm" "msk_cpu_1" {
   period              = "300"
   statistic           = "Maximum"
   threshold           = "80"
+<<<<<<< HEAD
   alarm_description   = "Database instance CPU above threshold for broker 1"
   actions_enabled     = true
   alarm_actions       = [aws_sns_topic.kpi.arn]
   dimensions = {
         "Cluster Name" = "${var.msk_clustername}"
         "Broker ID" =  "1"
+=======
+  alarm_description   = "Database instance CPU above threshold"
+  actions_enabled     = true
+  alarm_actions       = [aws_sns_topic.kpi.arn]
+  dimensions = {
+        "Cluster Name" = "${var.kafka_clustername}"
+         "Broker ID" =  "1"
+>>>>>>> 3ac67cfd7f3563f409aa5ce698e35f554da5f15d
       }
 }
 
@@ -122,7 +131,11 @@ resource "aws_cloudwatch_metric_alarm" "msk_disk" {
   actions_enabled     = true
   alarm_actions       = [aws_sns_topic.kpi.arn]
    dimensions = {
+<<<<<<< HEAD
        "Cluster Name" = "${var.msk_clustername}"
+=======
+        "Cluster Name" = "${var.kafka_clustername}"
+>>>>>>> 3ac67cfd7f3563f409aa5ce698e35f554da5f15d
       }
 }
 ########################################
@@ -271,7 +284,11 @@ resource "aws_cloudwatch_metric_alarm" "DOCDB_cpu" {
   actions_enabled     = true
   alarm_actions       = [aws_sns_topic.kpi.arn]
 dimensions = {
+<<<<<<< HEAD
         DBClusterIdentifier = "${var.docdb_clustername}"
+=======
+      DBClusterIdentifier = "${var.docdb_clustername}"
+>>>>>>> 3ac67cfd7f3563f409aa5ce698e35f554da5f15d
       }
 }
 
