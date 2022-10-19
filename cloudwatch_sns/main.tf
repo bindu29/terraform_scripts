@@ -73,23 +73,43 @@ data "aws_iam_policy_document" "kpi" {
 # Cloudwatch for Kafka
 ########################################
 
-resource "aws_cloudwatch_metric_alarm" "high_cpu" {
-  alarm_name          = "${var.client}-${var.environment}-kafka-high-cpu"
+resource "aws_cloudwatch_metric_alarm" "msk_cpu_1" {
+  alarm_name          = "${var.client}-${var.environment}-msk-high-cpu-broker1"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = "1"
-  metric_name         = "CPUUtilization"
+  metric_name         = "CpuSystem"
   namespace           = "AWS/Kafka"
   period              = "300"
   statistic           = "Maximum"
   threshold           = "80"
-  alarm_description   = "Database instance CPU above threshold"
+  alarm_description   = "Database instance CPU above threshold for broker 1"
+  actions_enabled     = true
   alarm_actions       = [aws_sns_topic.kpi.arn]
   dimensions = {
-        ClusterName = "${var.kafka_clustername}"
+        "Cluster Name" = "${var.msk_clustername}"
+        "Broker ID" =  "1"
       }
 }
 
-resource "aws_cloudwatch_metric_alarm" "kafka_disk" {
+resource "aws_cloudwatch_metric_alarm" "msk_cpu_2" {
+  alarm_name          = "${var.client}-${var.environment}-msk-high-cpu-broker2"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = "1"
+  metric_name         = "CpuSystem"
+  namespace           = "AWS/Kafka"
+  period              = "300"
+  statistic           = "Maximum"
+  threshold           = "80"
+  alarm_description   = "Database instance CPU above threshold for broker 2"
+  actions_enabled     = true
+  alarm_actions       = [aws_sns_topic.kpi.arn]
+  dimensions = {
+        "Cluster Name" = "${var.msk_clustername}"
+        "Broker ID" =  "2"
+      }
+}
+
+resource "aws_cloudwatch_metric_alarm" "msk_disk" {
   alarm_name          = "${var.client}-${var.environment}-msk-datalogs-disk"
   comparison_operator = "LessThanOrEqualToThreshold"
   evaluation_periods  = "1"
@@ -99,17 +119,18 @@ resource "aws_cloudwatch_metric_alarm" "kafka_disk" {
   statistic           = "Average"
   threshold           = "75"
   alarm_description   = "MSK Broker Data Logs Disk Usage"
+  actions_enabled     = true
   alarm_actions       = [aws_sns_topic.kpi.arn]
    dimensions = {
-        ClusterName = "${var.kafka_clustername}"
+       "Cluster Name" = "${var.msk_clustername}"
       }
 }
 ########################################
 # Cloudwatch for Elasticsearch
 ########################################
 
-resource "aws_cloudwatch_metric_alarm" "cluster_status_is_red" {
-  alarm_name          = "${var.client}-${var.environment}-ElasticSearch-ClusterStatusIsRed"
+resource "aws_cloudwatch_metric_alarm" "es_cluster_status_red" {
+  alarm_name          = "${var.client}-${var.environment}-ES-ClusterStatusIsRed"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = "1"
   datapoints_to_alarm = "1"
@@ -119,14 +140,15 @@ resource "aws_cloudwatch_metric_alarm" "cluster_status_is_red" {
   statistic           = "Maximum"
   threshold           = "1"
   alarm_description   = "elasticsearch cluster status is in red"
+  actions_enabled     = true
   alarm_actions       = [aws_sns_topic.kpi.arn]
    dimensions = {
-        ClusterName = "${var.es_domainname}"
+        DomainName = "${var.es_domainname}"
         ClientId   = "${var.es_clientid}"
       }
 }
-resource "aws_cloudwatch_metric_alarm" "cluster_status_is_yellow" {
-  alarm_name          = "${var.client}-${var.environment}-ElasticSearch-ClusterStatusIsYellow"
+resource "aws_cloudwatch_metric_alarm" "es_cluster_status_yellow" {
+  alarm_name          = "${var.client}-${var.environment}-ES-ClusterStatusIsYellow"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = "1"
   datapoints_to_alarm = "1"
@@ -136,31 +158,33 @@ resource "aws_cloudwatch_metric_alarm" "cluster_status_is_yellow" {
   statistic           = "Maximum"
   threshold           = "1"
   alarm_description   = "elasticsearch cluster status is in yellow"
+  actions_enabled     = true
   alarm_actions       = [aws_sns_topic.kpi.arn]
    dimensions = {
-        ClusterName = "${var.es_domainname}"
+        DomainName = "${var.es_domainname}"
          ClientId   = "${var.es_clientid}"
       }
 }
-resource "aws_cloudwatch_metric_alarm" "free_storage_space_too_low" {
-  alarm_name          = "${var.client}-${var.environment}-ElasticSearch-FreeStorage"
-  comparison_operator = "LessThanOrEqualToThreshold"
+resource "aws_cloudwatch_metric_alarm" "es_free_storage" {
+  alarm_name          = "${var.client}-${var.environment}-ES-FreeStorage"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = "1"
   datapoints_to_alarm = "1"
   metric_name         = "FreeStorageSpace"
   namespace           = "AWS/ES"
   period              = "300"
   statistic           = "Average"
-  threshold           = "75"
+  threshold           = "3500"
   alarm_description   = "Minimum free disk space on a single node"
+  actions_enabled     = true
   alarm_actions       = [aws_sns_topic.kpi.arn]
   dimensions = {
-        ClusterName = "${var.es_domainname}"
+        DomainName = "${var.es_domainname}"
          ClientId   = "${var.es_clientid}"
       }
 }
-resource "aws_cloudwatch_metric_alarm" "cluster_index_writes_blocked" {
-  alarm_name          = "${var.client}-${var.environment}-ElasticSearch-ClusterIndexWritesBlocked"
+resource "aws_cloudwatch_metric_alarm" "es_cluster_index" {
+  alarm_name          = "${var.client}-${var.environment}-ES-ClusterIndexWritesBlocked"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = "1"
   datapoints_to_alarm = "1"
@@ -170,14 +194,15 @@ resource "aws_cloudwatch_metric_alarm" "cluster_index_writes_blocked" {
   statistic           = "Maximum"
   threshold           = "1"
   alarm_description   = "Elasticsearch index writes being blocker"
+  actions_enabled     = true
   alarm_actions       = [aws_sns_topic.kpi.arn]
   dimensions = {
-        ClusterName = "${var.es_domainname}"
+        DomainName = "${var.es_domainname}"
          ClientId   = "${var.es_clientid}"
       }
 }
-resource "aws_cloudwatch_metric_alarm" "insufficient_available_nodes" {
-  alarm_name          = "${var.client}-${var.environment}-ElasticSearch-InsufficientAvailableNodes"
+resource "aws_cloudwatch_metric_alarm" "es_insufficient_available_nodes" {
+  alarm_name          = "${var.client}-${var.environment}-ES-InsufficientAvailableNodes"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = "1"
   datapoints_to_alarm = "1"
@@ -187,14 +212,15 @@ resource "aws_cloudwatch_metric_alarm" "insufficient_available_nodes" {
   statistic           = "Average"
   threshold           = "2"
   alarm_description   = "Insufficient available Elastic search nodes"
+  actions_enabled     = true
   alarm_actions       = [aws_sns_topic.kpi.arn]
   dimensions = {
-        ClusterName = "${var.es_domainname}"
+        DomainName = "${var.es_domainname}"
          ClientId   = "${var.es_clientid}"
       }
 }
-resource "aws_cloudwatch_metric_alarm" "ES_cpu" {
-  alarm_name          = "${var.client}-${var.environment}-ElasticSearch-CPUUtilizationTooHigh"
+resource "aws_cloudwatch_metric_alarm" "es_cpu" {
+  alarm_name          = "${var.client}-${var.environment}-ES-CPUUtilizationTooHigh"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = "1"
   datapoints_to_alarm = "1"
@@ -204,16 +230,17 @@ resource "aws_cloudwatch_metric_alarm" "ES_cpu" {
   statistic           = "Average"
   threshold           = "80"
   alarm_description   = "Average elasticsearch cluster CPU utilization too high"
+  actions_enabled     = true
   alarm_actions       = [aws_sns_topic.kpi.arn]
   dimensions = {
-        ClusterName = "${var.es_domainname}"
+        DomainName = "${var.es_domainname}"
          ClientId   = "${var.es_clientid}"
       }
 }
 ########################################
 # Cloudwatch for DocumentDB
 ########################################
-resource "aws_cloudwatch_metric_alarm" "ClusterReplicaLag" {
+resource "aws_cloudwatch_metric_alarm" "docdb_ClusterReplicaLag" {
   alarm_name          = "${var.client}-${var.environment}-DocDB-low-memory"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = "15"
@@ -224,9 +251,10 @@ resource "aws_cloudwatch_metric_alarm" "ClusterReplicaLag" {
   threshold           = "5000"
   datapoints_to_alarm   = "15"
   alarm_description   = "Database instance cluster Replica lag is greater"
+  actions_enabled     = true
   alarm_actions       = [aws_sns_topic.kpi.arn]
 dimensions = {
-        ClusterName = "${var.docdb_clustername}"
+        DBClusterIdentifier = "${var.docdb_clustername}"
       }
 
 }
@@ -240,25 +268,27 @@ resource "aws_cloudwatch_metric_alarm" "DOCDB_cpu" {
   statistic           = "Maximum"
   threshold           = "80"
   alarm_description   = "Database instance CPU above threshold"
+  actions_enabled     = true
   alarm_actions       = [aws_sns_topic.kpi.arn]
 dimensions = {
-        ClusterName = "${var.docdb_clustername}"
+        DBClusterIdentifier = "${var.docdb_clustername}"
       }
 }
 
-resource "aws_cloudwatch_metric_alarm" "low_disk" {
+resource "aws_cloudwatch_metric_alarm" "docdb_low_disk" {
   alarm_name          = "${var.client}-${var.environment}-docdb-low-disk"
   comparison_operator = "LessThanOrEqualToThreshold"
   evaluation_periods  = "1"
-  metric_name         = "FreeStorageSpace"
+  metric_name         = "FreeLocalStorage"
   namespace           = "AWS/DocDB"
   period              = "300"
   statistic           = "Maximum"
   threshold           = "1000000000"
   unit                = "Bytes"
   alarm_description   = "Database instance disk space is low"
+  actions_enabled     = true
   alarm_actions       = [aws_sns_topic.kpi.arn]
 dimensions = {
-        ClusterName = "${var.docdb_clustername}"
+        DBClusterIdentifier = "${var.docdb_clustername}"
       }
 }

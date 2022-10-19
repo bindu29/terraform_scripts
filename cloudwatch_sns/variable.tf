@@ -35,7 +35,7 @@ variable "account_id" {
     description = "account id of AWS Service"
     type = string
 }
-variable "kafka_clustername" {
+variable "msk_clustername" {
 
     description = "Kafka Cluster Name"
     type = string
